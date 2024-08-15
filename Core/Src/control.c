@@ -11,7 +11,17 @@
 float ticks_per_m; // 48ticks/rev = 300.8, 24ticks/rev = 150.4, 12ticks/rev = 75.2, address: 0x0802 0000
 float dist; // Must be >1.5 (8.53 m = 28ft), address: 0x0802 0004
 
+void EStop() {
+	while (STOPPressed()) {
+		ESCWrite(1.5);
+		LEDWrite(255, 0, 0);
+		HAL_GPIO_WritePin(BOOSTON_GPIO_Port, BOOSTON_Pin, GPIO_PIN_RESET);
+	}
+}
+
 void Go() {
+	HAL_GPIO_WritePin(BOOSTON_GPIO_Port, BOOSTON_Pin, GPIO_PIN_SET);
+
 	ESCWrite(1.5);
 	LEDWrite(0, 255, 0);
 	while (GOPressed()) {
@@ -26,10 +36,7 @@ void Go() {
 		LEDWrite(255.0f*prog, 255.0f*prog, 0);
 		EncoderUpdate();
 		if (STOPPressed()) {
-			while (STOPPressed()) {
-				ESCWrite(1.5);
-				LEDWrite(255, 0, 0);
-			}
+			EStop();
 			return;
 		}
 	}
@@ -42,10 +49,7 @@ void Go() {
 	while (abs(M1Ticks) + abs(M2Ticks) < (dist - 1.5f)*ticks_per_m) {
 		EncoderUpdate();
 		if (STOPPressed()) {
-			while (STOPPressed()) {
-				ESCWrite(1.5);
-				LEDWrite(255, 0, 0);
-			}
+			EStop();
 			return;
 		}
 	}
@@ -57,10 +61,7 @@ void Go() {
 	while (abs(M1Ticks) + abs(M2Ticks) < dist*ticks_per_m) {
 		EncoderUpdate();
 		if (STOPPressed()) {
-			while (STOPPressed()) {
-				ESCWrite(1.5);
-				LEDWrite(255, 0, 0);
-			}
+			EStop();
 			return;
 		}
 	}

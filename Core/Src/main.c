@@ -98,8 +98,6 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
-
-
   /* USER CODE BEGIN 2 */
   PeripheralInit();
   DataInit();
@@ -115,21 +113,24 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  LEDWrite(0, 0, 0);
-	  ESCWrite(1.5);
 
-	  if (GOPressed()) {
-		  Go();
-	  }
-
-	  while (STOPPressed()) {
-		  LEDWrite(255, 0, 0);
-	  }
-
-	  if (dataAvailable) {
-		  DataAvailable();
-	  }
     /* USER CODE BEGIN 3 */
+	LEDWrite(0, 0, 0);
+	ESCWrite(1.5);
+	HAL_GPIO_WritePin(BOOSTON_GPIO_Port, BOOSTON_Pin, GPIO_PIN_RESET);
+
+
+	if (GOPressed()) {
+	  Go();
+	}
+
+	while (STOPPressed()) {
+	  LEDWrite(255, 0, 0);
+	}
+
+	if (dataAvailable) {
+	  DataAvailable();
+	}
   }
   /* USER CODE END 3 */
 }
