@@ -59,10 +59,6 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define ESC1_Pin GPIO_PIN_0
 #define ESC1_GPIO_Port GPIOA
-#define AENBL_Pin GPIO_PIN_1
-#define AENBL_GPIO_Port GPIOA
-#define BENBL_Pin GPIO_PIN_2
-#define BENBL_GPIO_Port GPIOA
 #define VSENSE_Pin GPIO_PIN_3
 #define VSENSE_GPIO_Port GPIOA
 #define GYRO_CS_Pin GPIO_PIN_0
@@ -87,10 +83,6 @@ void Error_Handler(void);
 #define E2A_GPIO_Port GPIOB
 #define E2B_Pin GPIO_PIN_7
 #define E2B_GPIO_Port GPIOB
-#define BPHASE_Pin GPIO_PIN_8
-#define BPHASE_GPIO_Port GPIOB
-#define APHASE_Pin GPIO_PIN_9
-#define APHASE_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

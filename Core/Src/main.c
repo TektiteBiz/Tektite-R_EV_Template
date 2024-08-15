@@ -26,12 +26,13 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "peripheral.h"
+#include "control.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+extern uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -97,7 +98,15 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+
+
   /* USER CODE BEGIN 2 */
+  PeripheralInit();
+  DataInit();
+
+  LEDWrite(255, 255, 255);
+  ESCWrite(0);
+  HAL_Delay(500);
 
   /* USER CODE END 2 */
 
@@ -106,7 +115,20 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
+	  LEDWrite(0, 0, 0);
+	  ESCWrite(1.5);
 
+	  if (GOPressed()) {
+		  Go();
+	  }
+
+	  while (STOPPressed()) {
+		  LEDWrite(255, 0, 0);
+	  }
+
+	  if (dataAvailable) {
+		  DataAvailable();
+	  }
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -158,7 +180,14 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+/**
+  * @brief  Retargets the C library printf function to the USART.
+  * @PAram  None
+  * @retval None
+  */
+int _write(int file, char *ptr, int len) {
+    CDC_Transmit_FS((uint8_t*) ptr, len); return len;
+}
 /* USER CODE END 4 */
 
 /**
