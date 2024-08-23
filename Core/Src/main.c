@@ -106,6 +106,8 @@ int main(void)
   ESCWrite(0);
   HAL_Delay(500);
 
+
+  float battVoltage = BattVoltage();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -119,9 +121,15 @@ int main(void)
 	ESCWrite(1.5);
 	HAL_GPIO_WritePin(BOOSTON_GPIO_Port, BOOSTON_Pin, GPIO_PIN_RESET);
 
-
-	if (GOPressed()) {
+	if (battVoltage < 5.1) { // USB Power
+		LEDWrite(64, 64, 64);
+		printf("%f\n", BattVoltage());
+	} else if (GOPressed()) {
 	  Go();
+	}
+
+	if (battVoltage < 10.0) { // Time to charge!
+		LEDWrite(128, 64, 0);
 	}
 
 	while (STOPPressed()) {

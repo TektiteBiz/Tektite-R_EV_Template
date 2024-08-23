@@ -24,6 +24,8 @@ void PeripheralInit();
 
 void ESCWrite(float ms); // PWM ms
 
+float BattVoltage();
+
 bool GOPressed();
 bool STOPPressed();
 

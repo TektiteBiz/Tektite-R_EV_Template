@@ -33,7 +33,7 @@ void LEDInit() {
 float BattVoltage() {
 	HAL_ADC_Start(&hadc1);
 	HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
-	return ((float)HAL_ADC_GetValue(&hadc1))*0.00251984291f; // x/4096 * (100+47)/47 [voltage resistor] * 3.3 [vref]
+	return ((float)HAL_ADC_GetValue(&hadc1))*0.00337693234; // x/4096 * (150+47)/47 [voltage resistor] * 3.3 [vref]
 }
 
 void ESCInit() {
