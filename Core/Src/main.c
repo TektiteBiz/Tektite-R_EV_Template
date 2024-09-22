@@ -123,7 +123,7 @@ int main(void)
 
 	if (battVoltage < 5.1) { // USB Power
 		LEDWrite(64, 64, 64);
-		printf("%f\n", BattVoltage());
+		//printf("%f\n", BattVoltage());
 	} else if (GOPressed()) {
 	  Go();
 	}
