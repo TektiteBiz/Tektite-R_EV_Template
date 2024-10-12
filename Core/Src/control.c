@@ -10,6 +10,8 @@
 
 float ticks_per_m; // 48ticks/rev = 300.8, 24ticks/rev = 150.4, 12ticks/rev = 75.2, address: 0x0802 0000
 float dist; // Must be >1.5 (8.53 m = 28ft), address: 0x0802 0004
+float accel_dist; // meters
+float decel_dist; // meters
 
 void EStop() {
 	while (STOPPressed()) {
@@ -30,8 +32,8 @@ void Go() {
 	EncoderReset();
 
 	// Accelerate with a square root curve for 0.5m
-	while (abs(M1Ticks) + abs(M2Ticks) < 0.25f*ticks_per_m) {
-		float prog = sqrt((abs(M1Ticks) + abs(M2Ticks))/(0.25f*ticks_per_m));
+	while (abs(M1Ticks) + abs(M2Ticks) < accel_dist*ticks_per_m) {
+		float prog = sqrt((abs(M1Ticks) + abs(M2Ticks))/(accel_dist*ticks_per_m));
 		ESCWrite(1.6 + 0.3*prog);
 		LEDWrite(255.0f*prog, 255.0f*prog, 0);
 		EncoderUpdate();
@@ -46,7 +48,7 @@ void Go() {
 	LEDWrite(255, 255, 0);
 
 	// Wait for distance
-	while (abs(M1Ticks) + abs(M2Ticks) < (dist - 1.5f)*ticks_per_m) {
+	while (abs(M1Ticks) + abs(M2Ticks) < (dist - decel_dist)*ticks_per_m) {
 		EncoderUpdate();
 		if (STOPPressed()) {
 			EStop();
@@ -75,7 +77,11 @@ void Go() {
 void DataAvailable() {
 	dataAvailable = false;
 	LEDWrite(0, 0, 255);
-	printf("Entering programming mode. Enter 'd' to change the distance (currently %.3f meters), 't' to change the ticks per meter (currently %.1f), or 'f' to finish\n", dist, ticks_per_m);
+	printf("Entering programming mode.\nEnter 'd' to change the distance (currently %.3f meters)\nEnter 't' to change the ticks per meter (currently %.1f)\n", dist, ticks_per_m);
+	HAL_Delay(1);
+	printf("Enter 'b' to read the battery voltage\nEnter 'a' to change the acceleration distance (currently %.3f meters)\nEnter 'e' to change the deceleration distance (currently %.3f meters)\n", accel_dist, decel_dist);
+	HAL_Delay(1);
+	printf("Enter 'f' to finish\n");
 	bool finish = false;
 	while (!finish) {
 		while (!dataAvailable) {
@@ -108,9 +114,41 @@ void DataAvailable() {
 			printf("Saved ticks per meter as %.1f.\n", ticks_per_m);
 			break;
 
+		case 'a':
+			memset(data, '0', sizeof(data));
+			printf("Enter the acceleration distance as 5 characters. Example: 0.500\n");
+			dataAvailable = false;
+			while (!dataAvailable) {
+				HAL_Delay(1);
+			}
+			data[5] = 0;
+
+			accel_dist = atof(data);
+			DataWrite();
+			printf("Saved acceleration distance per meter as %.3f.\n", accel_dist);
+			break;
+
+		case 'e':
+			memset(data, '0', sizeof(data));
+			printf("Enter the deceleration distance as 5 characters. Example: 1.500\n");
+			dataAvailable = false;
+			while (!dataAvailable) {
+				HAL_Delay(1);
+			}
+			data[5] = 0;
+
+			decel_dist = atof(data);
+			DataWrite();
+			printf("Saved deceleration distance per meter as %.3f.\n", decel_dist);
+			break;
+
 		case 'f':
 			printf("Finished.\n");
 			finish = true;
+			break;
+
+		case 'b':
+			printf("Battery voltage: %0.2f (Recommended minimum of 10V)\n", BattVoltage());
 			break;
 
 		default:
@@ -134,14 +172,19 @@ void DataWrite() {
 	HAL_FLASH_Unlock();
 	if (HAL_FLASHEx_Erase(&EraseInitStruct, &SECTORError) != HAL_OK) {
 		HAL_FLASH_Lock();
+		while (1) {printf("F\n");};
 		Error("FLASH Failure");
 		return;
 	}
 
 	uint32_t tpm;
 	uint32_t dst;
+	uint32_t ad;
+	uint32_t dd;
 	memcpy(&tpm, &ticks_per_m, sizeof(ticks_per_m));
 	memcpy(&dst, &dist, sizeof(dist));
+	memcpy(&ad, &accel_dist, sizeof(accel_dist));
+	memcpy(&dd, &decel_dist, sizeof(decel_dist));
 
 	if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, 0x08020000, tpm) != HAL_OK) {
 		HAL_FLASH_Lock();
@@ -158,6 +201,16 @@ void DataWrite() {
 		Error("FLASH Failure");
 		return;
 	}
+	if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, 0x0802000C, ad) != HAL_OK) {
+		HAL_FLASH_Lock();
+		Error("FLASH Failure");
+		return;
+	}
+	if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, 0x08020010, dd) != HAL_OK) {
+		HAL_FLASH_Lock();
+		Error("FLASH Failure");
+		return;
+	}
 
 	HAL_FLASH_Lock();
 }
@@ -165,14 +218,20 @@ void DataWrite() {
 void DataInit() {
 	uint32_t tpm = *(__IO uint32_t *)(0x08020000);
 	uint32_t dst = *(__IO uint32_t *)(0x08020004);
+	uint32_t ad = *(__IO uint32_t *)(0x0802000C);
+	uint32_t dd = *(__IO uint32_t *)(0x08020010);
 	memcpy(&ticks_per_m, &tpm, sizeof(tpm));
 	memcpy(&dist, &dst, sizeof(dst));
+	memcpy(&accel_dist, &ad, sizeof(ad));
+	memcpy(&decel_dist, &dd, sizeof(dd));
 
 	uint32_t initialized = *(__IO uint32_t *)(0x08020008);
 	if (initialized != 1) {
 		LEDWrite(255, 0, 0);
 		ticks_per_m = 150.4;
 		dist = 7.0f;
+		accel_dist = 0.5;
+		decel_dist = 1.5;
 		DataWrite();
 	}
 }
