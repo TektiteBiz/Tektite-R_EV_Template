@@ -77,9 +77,17 @@ void Go() {
 void DataAvailable() {
 	dataAvailable = false;
 	LEDWrite(0, 0, 255);
-	printf("Entering programming mode.\nEnter 'd' to change the distance (currently %.3f meters)\nEnter 't' to change the ticks per meter (currently %.1f)\n", dist, ticks_per_m);
+	printf("Entering programming mode.\n");
 	HAL_Delay(1);
-	printf("Enter 'b' to read the battery voltage\nEnter 'a' to change the acceleration distance (currently %.3f meters)\nEnter 'e' to change the deceleration distance (currently %.3f meters)\n", accel_dist, decel_dist);
+	printf("Enter 'd' to change the distance (currently %.3f meters)\n", dist);
+	HAL_Delay(1);
+	printf("Enter 't' to change the ticks per meter (currently %.1f)\n", ticks_per_m);
+	HAL_Delay(1);
+	printf("Enter 'b' to read the battery voltage (make sure the jumper is in the ON position)\n");
+	HAL_Delay(1);
+	printf("Enter 'a' to change the acceleration distance (currently %.3f meters)\n", accel_dist);
+	HAL_Delay(1);
+	printf("Enter 'e' to change the deceleration distance (currently %.3f meters)\n", decel_dist);
 	HAL_Delay(1);
 	printf("Enter 'f' to finish\n");
 	bool finish = false;
@@ -152,7 +160,7 @@ void DataAvailable() {
 			break;
 
 		default:
-			printf("Invalid character. Enter 'd', 't', or 's'.\n");
+			printf("Invalid character. Enter 'd', 't', 'b', 'a', 'e', or 'f'.\n");
 			break;
 		}
 		dataAvailable = false;
