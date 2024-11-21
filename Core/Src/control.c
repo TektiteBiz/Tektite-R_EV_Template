@@ -21,6 +21,10 @@ void EStop() {
 	}
 }
 
+int Distance() {
+	return abs(M1Ticks) + abs(M2Ticks);
+}
+
 void Go() {
 	HAL_GPIO_WritePin(BOOSTON_GPIO_Port, BOOSTON_Pin, GPIO_PIN_SET);
 
@@ -31,11 +35,35 @@ void Go() {
 	}
 	EncoderReset();
 
-	// Accelerate with a square root curve for 0.5m
-	while (abs(M1Ticks) + abs(M2Ticks) < accel_dist*ticks_per_m) {
-		float prog = sqrt((abs(M1Ticks) + abs(M2Ticks))/(accel_dist*ticks_per_m));
-		ESCWrite(1.6 + 0.3*prog);
-		LEDWrite(255.0f*prog, 255.0f*prog, 0);
+	// CHANGE THIS PART
+
+	/* Documentation:
+	 *
+	 * Functions:
+	 * 	use Distance() to get the distance travelled
+	 * 	use ESCWrite(<ms>) to write a PWM frequency to the ESC
+	 * 	use LEDWrite(r, g, b) to write to the LEDs, where r, g, and b are integers from 0-255
+	 *
+	 * Variables:
+	 * 	accel_dist has the acceleration distance in meters
+	 * 	decel_dist has the deceleration distance in meters
+	 * 	dist has the total distance in meters
+	 *
+	 * Communicating with the ESC:
+	 * 	ESCWrite(1.5) will be zero power (1500us)
+	 * 	ESCWrite(1.9) will be full speed (1900us)
+	 * 	ESCWrite(1.6) will be the minimum speed (1600us)
+	 * 	ESCWrite(1.1) will trigger motor braking (1100us)
+	 *
+	 * 	You can interpolate between 1.5 and 1.9 for the acceleration curve!
+	 *
+	 * 	I've outlined the code below:
+	 */
+
+	// TODO: Implement accelerate with a square root curve for accel_dist
+	while (true /* change this */) {
+		// TODO: Put an ESCWrite and LEDWrite statement here
+
 		EncoderUpdate();
 		if (STOPPressed()) {
 			EStop();
@@ -43,12 +71,10 @@ void Go() {
 		}
 	}
 
-	// Full speed!
-	ESCWrite(1.9);
-	LEDWrite(255, 255, 0);
+	// TODO: Maintain full speed until decel_dist away from end
+	while (true /* change this */) {
+		// TODO: Put ESCWrite and LEDWrite statement here
 
-	// Wait for distance
-	while (abs(M1Ticks) + abs(M2Ticks) < (dist - decel_dist)*ticks_per_m) {
 		EncoderUpdate();
 		if (STOPPressed()) {
 			EStop();
@@ -56,11 +82,10 @@ void Go() {
 		}
 	}
 
-	// Slow down!
-	ESCWrite(1.6);
-	LEDWrite(0, 0, 255);
+	// TODO: Reduce speed to minimum speed and keep going until the end
+	while (true /* change this */) {
+		// TODO: Put ESCWrite and LEDWrite statement here
 
-	while (abs(M1Ticks) + abs(M2Ticks) < dist*ticks_per_m) {
 		EncoderUpdate();
 		if (STOPPressed()) {
 			EStop();
@@ -68,9 +93,8 @@ void Go() {
 		}
 	}
 
-	// Stop!
-	ESCWrite(1.1);
-	LEDWrite(255, 0, 0);
+	// TODO: Stop! (put ESCWrite and LEDWrite statement here)
+
 	HAL_Delay(500);
 }
 
