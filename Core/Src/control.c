@@ -40,7 +40,7 @@ void Go() {
 	/* Documentation:
 	 *
 	 * Functions:
-	 * 	use Distance() to get the distance travelled
+	 * 	use Distance() to get the distance travelled in ticks, NOT METERS
 	 * 	use ESCWrite(<ms>) to write a PWM frequency to the ESC
 	 * 	use LEDWrite(r, g, b) to write to the LEDs, where r, g, and b are integers from 0-255
 	 *
